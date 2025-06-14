@@ -27,7 +27,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
+import { cn } from "@/lib/utils"; // Correctly import cn
 
 // Custom SVG icons for assessment criteria
 const DisciplineIcon = ({className}: {className?: string}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={cn("h-5 w-5 text-primary", className)}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>;
@@ -295,13 +295,13 @@ export default function StudentsPage() {
                   id={item.labelKey}
                   type="number"
                   min="0" max={item.labelKey === 'score' ? "100" : "5"} step={item.labelKey === 'score' ? "1" : "0.5"}
-                  value={String(item.value)} // Ensure value is a string for Input
+                  value={String(item.value ?? '')} 
                   onChange={(e) => {
                     const newValue = e.target.value;
-                    const parsedValue = newValue === '' ? '' : parseFloat(newValue); // Handle empty string for potential clearing
+                    const parsedValue = newValue === '' ? undefined : parseFloat(newValue); 
                      setGrades({ 
                         ...grades, 
-                        [item.field]: parsedValue === '' ? undefined : (typeof parsedValue === 'number' ? parsedValue : 0) // Store as number or undefined
+                        [item.field]: parsedValue
                     });
                   }}
                   className="col-span-3"
@@ -354,13 +354,3 @@ export default function StudentsPage() {
     </div>
   );
 }
-
-// Helper for cn, if not already globally available or imported
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
-}
-
-    
