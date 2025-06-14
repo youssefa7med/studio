@@ -1,19 +1,36 @@
+
 "use client";
 
 import { useLanguage } from '@/contexts/language-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Users, CalendarDays, UserCog, BarChart3 } from 'lucide-react';
+import { Users, CalendarDays, UserCog, BarChart3, School, CalendarClock, TrendingUp } from 'lucide-react';
 import Image from 'next/image';
+
+// Mock data - in a real app, this would come from an API or context
+const MOCK_STATS = {
+  totalStudents: 125,
+  activeClasses: 8,
+  upcomingSessions: 3,
+};
 
 export default function AdminDashboardPage() {
   const { t, language } = useLanguage();
 
   const quickLinks = [
-    { href: "/admin/students", labelKey: "students", icon: Users, descriptionKey: "Manage student profiles and grades." },
-    { href: "/admin/schedule", labelKey: "schedule", icon: CalendarDays, descriptionKey: "View and manage session schedules." },
-    { href: "/admin/manage-admins", labelKey: "manageAdmins", icon: UserCog, descriptionKey: "Add or modify admin accounts." },
+    { href: "/admin/students", labelKey: "students", icon: Users, descriptionKey: "manageStudentProfiles" },
+    { href: "/admin/classes", labelKey: "classes", icon: School, descriptionKey: "manageClassesDesc" },
+    { href: "/admin/sessions", labelKey: "sessions", icon: ClipboardList, descriptionKey: "trackSessionsDesc" },
+    { href: "/admin/schedule", labelKey: "schedule", icon: CalendarDays, descriptionKey: "manageSessionSchedules" },
+    { href: "/admin/scoreboard", labelKey: "scoreboard", icon: Trophy, descriptionKey: "viewOverallScoresDesc" },
+    { href: "/admin/manage-admins", labelKey: "manageAdmins", icon: UserCog, descriptionKey: "manageAdminAccounts" },
+  ];
+
+  const overviewStats = [
+    { titleKey: "totalStudents", value: MOCK_STATS.totalStudents, icon: Users, color: "text-blue-500", bgColor: "bg-blue-500/10" },
+    { titleKey: "activeClasses", value: MOCK_STATS.activeClasses, icon: School, color: "text-green-500", bgColor: "bg-green-500/10" },
+    { titleKey: "upcomingSessions", value: MOCK_STATS.upcomingSessions, icon: CalendarClock, color: "text-yellow-500", bgColor: "bg-yellow-500/10" },
   ];
 
   return (
@@ -21,57 +38,89 @@ export default function AdminDashboardPage() {
       <Card className="shadow-lg overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-primary to-accent p-8">
           <div className="flex items-center space-x-4 rtl:space-x-reverse">
-            <Image src="https://placehold.co/100x100.png" data-ai-hint="trophy star" alt="Tricks Land Emblem" width={80} height={80} className="rounded-full border-4 border-background shadow-md"/>
+            <Image 
+              src="https://placehold.co/100x100.png" 
+              alt="Tricks Land Emblem" 
+              width={80} 
+              height={80} 
+              data-ai-hint="trophy star"
+              className="rounded-full border-4 border-background shadow-md"
+            />
             <div>
               <CardTitle className="font-headline text-4xl text-background">{t('adminDashboard')}</CardTitle>
-              <CardDescription className="text-lg text-primary-foreground/80">{t('welcomeAdmin')}</CardDescription>
+              <CardDescription className="text-lg text-primary-foreground/80">{t('welcomeAdminDashboard')}</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="p-6">
           <p className="text-muted-foreground">
-            {language === 'en' ? 'From here, you can manage all aspects of Tricks Land Academy. Use the navigation links to manage students, schedule sessions, and oversee admin accounts. Let\'s make learning fun and rewarding!' : 'من هنا، يمكنك إدارة جميع جوانب أكاديمية تريكس لاند. استخدم روابط التنقل لإدارة الطلاب وجدولة الجلسات والإشراف على حسابات المسؤولين. لنجعل التعلم ممتعًا ومجزيًا!'}
+            {t('dashboardIntro')}
           </p>
         </CardContent>
       </Card>
-      
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {quickLinks.map(link => (
-          <Card key={link.href} className="shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out transform hover:-translate-y-1 flex flex-col">
+        {overviewStats.map(stat => (
+          <Card key={stat.titleKey} className={`shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out ${stat.bgColor}`}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xl font-medium font-headline text-primary">{t(link.labelKey)}</CardTitle>
-              <link.icon className="h-6 w-6 text-accent" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t(stat.titleKey)}</CardTitle>
+              <stat.icon className={`h-6 w-6 ${stat.color}`} />
             </CardHeader>
-            <CardContent className="flex-grow">
-              <p className="text-xs text-muted-foreground">
-                {language === 'en' ? link.descriptionKey : (link.labelKey === 'students' ? 'إدارة ملفات الطلاب ودرجاتهم.' : link.labelKey === 'schedule' ? 'عرض وإدارة جداول الجلسات.' : 'إضافة أو تعديل حسابات المسؤولين.')}
-              </p>
+            <CardContent>
+              <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+              <p className="text-xs text-muted-foreground pt-1">{t(`${stat.titleKey}Desc`)}</p>
             </CardContent>
-            <div className="p-4 pt-0">
-              <Button asChild className="w-full">
-                <Link href={link.href}>{t(link.labelKey)}</Link>
-              </Button>
-            </div>
           </Card>
         ))}
+      </div>
+      
+      <div>
+        <h2 className="font-headline text-2xl text-primary mb-4">{t('quickAccess')}</h2>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {quickLinks.map(link => (
+            <Card key={link.href} className="shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out transform hover:-translate-y-1 flex flex-col">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-xl font-medium font-headline text-primary">{t(link.labelKey)}</CardTitle>
+                <link.icon className="h-6 w-6 text-accent" />
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <p className="text-xs text-muted-foreground">
+                  {t(link.descriptionKey)}
+                </p>
+              </CardContent>
+              <div className="p-4 pt-0">
+                <Button asChild className="w-full">
+                  <Link href={link.href}>{t('viewDetails')}</Link>
+                </Button>
+              </div>
+            </Card>
+          ))}
+        </div>
       </div>
 
        <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="font-headline text-2xl text-primary flex items-center">
-            <BarChart3 className="mr-2 h-6 w-6 text-accent"/>
-            {language === 'en' ? 'Academy Stats (Placeholder)' : 'إحصائيات الأكاديمية (عنصر نائب)'}
+            <TrendingUp className="mr-2 h-6 w-6 text-accent"/>
+            {t('performanceMetrics')}
           </CardTitle>
           <CardDescription>
-            {language === 'en' ? 'Overview of student engagement and performance.' : 'نظرة عامة على مشاركة الطلاب وأدائهم.'}
+            {t('performanceOverview')}
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex items-center justify-center h-48 bg-muted/30 rounded-b-lg">
-          <p className="text-muted-foreground italic">
-            {language === 'en' ? 'Charts and statistics will be displayed here.' : 'سيتم عرض الرسوم البيانية والإحصائيات هنا.'}
-          </p>
+        <CardContent className="flex items-center justify-center h-60 bg-muted/30 rounded-b-lg">
+          {/* Placeholder for charts, e.g., using <ChartContainer /> from ShadCN */}
+          <div className="text-center">
+            <BarChart3 className="h-16 w-16 text-muted-foreground mx-auto mb-2"/>
+            <p className="text-muted-foreground italic">
+              {t('chartsPlaceholder')}
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
   );
 }
+
+// Ensure ClipboardList and Trophy are imported if used in quickLinks from other files
+import { ClipboardList, Trophy } from 'lucide-react'; 
