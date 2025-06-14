@@ -2,21 +2,22 @@
 "use client";
 
 import { useLanguage } from '@/contexts/language-context';
+import { useStudentData } from '@/contexts/student-data-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Users, CalendarDays, UserCog, BarChart3, School, CalendarClock, TrendingUp } from 'lucide-react';
+import { Users, CalendarDays, UserCog, BarChart3, School, CalendarClock, TrendingUp, ClipboardList, Trophy } from 'lucide-react';
 import Image from 'next/image';
-
-// Mock data - in a real app, this would come from an API or context
-const MOCK_STATS = {
-  totalStudents: 125,
-  activeClasses: 8,
-  upcomingSessions: 3,
-};
 
 export default function AdminDashboardPage() {
   const { t, language } = useLanguage();
+  const { students, classes } = useStudentData();
+
+  const dashboardStats = {
+    totalStudents: students.length,
+    activeClasses: classes.length, // Representing total defined classes for now
+    upcomingSessions: 3, // This remains a static value until session logic is implemented
+  };
 
   const quickLinks = [
     { href: "/admin/students", labelKey: "students", icon: Users, descriptionKey: "manageStudentProfiles" },
@@ -28,9 +29,9 @@ export default function AdminDashboardPage() {
   ];
 
   const overviewStats = [
-    { titleKey: "totalStudents", value: MOCK_STATS.totalStudents, icon: Users, color: "text-blue-500", bgColor: "bg-blue-500/10" },
-    { titleKey: "activeClasses", value: MOCK_STATS.activeClasses, icon: School, color: "text-green-500", bgColor: "bg-green-500/10" },
-    { titleKey: "upcomingSessions", value: MOCK_STATS.upcomingSessions, icon: CalendarClock, color: "text-yellow-500", bgColor: "bg-yellow-500/10" },
+    { titleKey: "totalStudents", value: dashboardStats.totalStudents, icon: Users, color: "text-blue-500", bgColor: "bg-blue-500/10" },
+    { titleKey: "activeClasses", value: dashboardStats.activeClasses, icon: School, color: "text-green-500", bgColor: "bg-green-500/10" },
+    { titleKey: "upcomingSessions", value: dashboardStats.upcomingSessions, icon: CalendarClock, color: "text-yellow-500", bgColor: "bg-yellow-500/10" },
   ];
 
   return (
@@ -121,6 +122,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-
-// Ensure ClipboardList and Trophy are imported if used in quickLinks from other files
-import { ClipboardList, Trophy } from 'lucide-react'; 
