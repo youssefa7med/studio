@@ -36,13 +36,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (storedIsAdmin === 'true' && storedAdminUser) {
         const parsedAdminUser: AdminUser = JSON.parse(storedAdminUser);
-        // Optional: Re-validate admin from the 'admins' list if necessary
+        // Check against the current 'admins' state.
+        // Note: 'admins' list itself is not persisted in localStorage, only the current logged-in admin.
+        // So, this primarily validates the initial hardcoded admin.
         const validAdmin = admins.find(a => a.id === parsedAdminUser.id && a.username === parsedAdminUser.username);
         if (validAdmin) {
           setCurrentAdmin(validAdmin);
           setIsAdmin(true);
         } else {
-          // Clear localStorage if stored admin is not in current list (e.g., if admins list changes)
+          // Clear localStorage if stored admin is not in current (initial) list
           localStorage.removeItem('isAdminTricksLand');
           localStorage.removeItem('currentAdminTricksLand');
         }
@@ -53,7 +55,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.removeItem('currentAdminTricksLand');
     }
     setAuthLoading(false); // Finished attempting to load auth state
-  }, [admins]); // Add admins to dependency array if re-validation logic depends on it.
+  }, []); // Empty dependency array: runs once on client mount
 
   const login = (usernameInput: string, passwordInput: string): boolean => {
     const adminExists = admins.find(admin => admin.username === usernameInput && admin.password === passwordInput);
@@ -79,19 +81,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const addAdmin = (newAdmin: AdminUser) => {
-    // Check if admin already exists to prevent duplicates if username is unique constraint
     if (admins.some(admin => admin.username === newAdmin.username)) {
       console.warn(`Admin with username ${newAdmin.username} already exists.`);
       return;
     }
-    setAdmins(prevAdmins => [...prevAdmins, { ...newAdmin, id: String(Date.now()) }]); // Use more unique ID
+    // Note: This adds to in-memory 'admins'. For persistence across sessions for new admins,
+    // the 'admins' list itself would need to be stored (e.g., in localStorage or a backend).
+    setAdmins(prevAdmins => [...prevAdmins, { ...newAdmin, id: String(Date.now()) }]);
   };
   
-  // The isMounted check for rendering children might not be strictly necessary
-  // if authLoading handles the initial state correctly.
-  // However, keeping it doesn't hurt and ensures client-side logic dependent on mount executes.
+  // Prevents rendering children on server or before client hydration is certain
   if (!isMounted) {
-    return null; // Or a global loading spinner if preferred
+    return null; 
   }
 
   return (

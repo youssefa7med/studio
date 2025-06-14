@@ -16,12 +16,16 @@ export default function AdminLayout({
   const router = useRouter();
 
   useEffect(() => {
+    // Only attempt to redirect once auth state is fully loaded and user is not admin
     if (!authLoading && !isAdmin) {
       router.replace('/login');
     }
   }, [authLoading, isAdmin, router]);
 
-  if (authLoading) {
+  // Show loader if:
+  // 1. Auth state is still loading.
+  // 2. Auth state is loaded, but user is not admin (redirect will occur or is in progress).
+  if (authLoading || (!isAdmin && !authLoading)) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -29,18 +33,7 @@ export default function AdminLayout({
     );
   }
 
-  if (!isAdmin) {
-    // This state will be hit if authLoading is false but isAdmin is also false.
-    // The useEffect above should trigger the redirect.
-    // Displaying a loader here prevents a flash of content if redirect is slow.
-    return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  // If authLoading is false and isAdmin is true, render the admin layout
+  // If we reach here, authLoading is false and isAdmin is true.
   return (
     <div className="flex min-h-screen">
       <AdminSidebar />
