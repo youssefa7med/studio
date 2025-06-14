@@ -29,10 +29,10 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
-// Placeholder icons if not found in lucide-react or if custom ones are preferred
-const ShieldCheck = ({className}: {className?: string}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>;
-const Clock3 = ({className}: {className?: string}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>;
-const Users2 = ({className}: {className?: string}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>;
+// Custom SVG icons for assessment criteria
+const DisciplineIcon = ({className}: {className?: string}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={cn("h-5 w-5 text-primary", className)}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>;
+const PunctualityIcon = ({className}: {className?: string}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={cn("h-5 w-5 text-primary", className)}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>;
+const EngagementIcon = ({className}: {className?: string}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={cn("h-5 w-5 text-primary", className)}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>;
 
 
 const initialStudents: Student[] = [
@@ -159,9 +159,12 @@ export default function StudentsPage() {
     <div className="space-y-6">
       <Card className="shadow-xl">
         <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="font-headline text-3xl text-primary">{t('manageStudentsPageTitle')}</CardTitle>
-            <CardDescription>{t('manageStudentsPageDescription')}</CardDescription>
+          <div className="flex items-center space-x-3 rtl:space-x-reverse">
+             <UserCircle2 className="h-8 w-8 text-primary" />
+            <div>
+                <CardTitle className="font-headline text-3xl text-primary">{t('manageStudentsPageTitle')}</CardTitle>
+                <CardDescription>{t('manageStudentsPageDescription')}</CardDescription>
+            </div>
           </div>
           <Dialog open={isStudentModalOpen} onOpenChange={setIsStudentModalOpen}>
             <DialogTrigger asChild>
@@ -192,6 +195,7 @@ export default function StudentsPage() {
                   <RadioGroup
                     defaultValue="male"
                     onValueChange={(value: 'male' | 'female' | 'other') => setNewStudentGender(value)}
+                    value={newStudentGender}
                     className="flex space-x-4 rtl:space-x-reverse"
                   >
                     <div className="flex items-center space-x-2 rtl:space-x-reverse">
@@ -280,7 +284,7 @@ export default function StudentsPage() {
               { labelKey: 'discipline', icon: <DisciplineIcon />, value: grades.discipline, field: 'discipline' as keyof StudentGrade },
               { labelKey: 'punctuality', icon: <PunctualityIcon />, value: grades.punctuality, field: 'punctuality' as keyof StudentGrade },
               { labelKey: 'engagement', icon: <EngagementIcon />, value: grades.engagement, field: 'engagement' as keyof StudentGrade },
-              { labelKey: 'score', icon: <UserCircle2 />, value: grades.score, field: 'score' as keyof StudentGrade},
+              { labelKey: 'score', icon: <UserCircle2 className="h-5 w-5 text-primary"/>, value: grades.score, field: 'score' as keyof StudentGrade},
             ].map(item => (
               <div key={item.labelKey} className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor={item.labelKey} className="text-right col-span-1 flex items-center justify-end rtl:text-left rtl:justify-start">
@@ -291,8 +295,15 @@ export default function StudentsPage() {
                   id={item.labelKey}
                   type="number"
                   min="0" max={item.labelKey === 'score' ? "100" : "5"} step={item.labelKey === 'score' ? "1" : "0.5"}
-                  value={item.value}
-                  onChange={(e) => setGrades({ ...grades, [item.field]: parseFloat(e.target.value) })}
+                  value={String(item.value)} // Ensure value is a string for Input
+                  onChange={(e) => {
+                    const newValue = e.target.value;
+                    const parsedValue = newValue === '' ? '' : parseFloat(newValue); // Handle empty string for potential clearing
+                     setGrades({ 
+                        ...grades, 
+                        [item.field]: parsedValue === '' ? undefined : (typeof parsedValue === 'number' ? parsedValue : 0) // Store as number or undefined
+                    });
+                  }}
                   className="col-span-3"
                 />
               </div>
@@ -343,3 +354,13 @@ export default function StudentsPage() {
     </div>
   );
 }
+
+// Helper for cn, if not already globally available or imported
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
+    
