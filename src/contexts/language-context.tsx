@@ -21,8 +21,8 @@ const translations: Record<string, Record<Language, string>> = {
   login: { en: "Login", ar: "تسجيل الدخول" },
   username: { en: "Username", ar: "اسم المستخدم" },
   password: { en: "Password", ar: "كلمة المرور" },
-  usernamePlaceholder: { en: "e.g., admin_user", ar: "مثال: admin_user" },
-  passwordPlaceholder: { en: "e.g., YourSecurePa$$wOrd", ar: "مثال: كلمةالمرورالآمنة الخاصةبك" },
+  usernamePlaceholder: { en: "Enter your username", ar: "أدخل اسم المستخدم الخاص بك" },
+  passwordPlaceholder: { en: "Enter your password", ar: "أدخل كلمة المرور الخاصة بك" },
   adminDashboard: { en: "Admin Dashboard", ar: "لوحة تحكم المسؤول" },
   students: { en: "Students", ar: "الطلاب" },
   schedule: { en: "Schedule", ar: "الجدول الزمني" },
@@ -40,7 +40,7 @@ const translations: Record<string, Record<Language, string>> = {
   overallScore: { en: "Overall Score", ar: "التقييم الكلي" },
   score: { en: "Score", ar: "الدرجة" },
   saveGrades: { en: "Save Grades", ar: "حفظ الدرجات" },
-  generateEncouragement: { en: "Generate Encouragement", ar: "إنشاء رسالة تشجيعية" }, // Retained for now if other UIs use it, but functionality is manual
+  // generateEncouragement: { en: "Generate Encouragement", ar: "إنشاء رسالة تشجيعية" }, // No longer used
   encouragementMessage: { en: "Encouragement Message", ar: "رسالة تشجيعية" },
   close: { en: "Close", ar: "إغلاق" },
   addAdmin: { en: "Add Admin", ar: "إضافة مسؤول" },
@@ -71,7 +71,7 @@ const translations: Record<string, Record<Language, string>> = {
   totalStudents: { en: "Total Students", ar: "إجمالي الطلاب" },
   totalStudentsDesc: { en: "Current number of enrolled students.", ar: "العدد الحالي للطلاب المسجلين." },
   activeClasses: { en: "Active Classes", ar: "الفصول النشطة" },
-  activeClassesDesc: { en: "Number of classes currently running.", ar: "عدد الفصول الدراسية الجارية حاليًا." },
+  activeClassesDesc: { en: "Number of classes currently defined.", ar: "عدد الفصول الدراسية المحددة حاليًا." },
   upcomingSessions: { en: "Upcoming Sessions", ar: "الجلسات القادمة" },
   upcomingSessionsDesc: { en: "Sessions scheduled for today/this week.", ar: "الجلسات المجدولة لليوم/هذا الأسبوع." },
   quickAccess: { en: "Quick Access", ar: "الوصول السريع" },
@@ -103,7 +103,10 @@ const translations: Record<string, Record<Language, string>> = {
   manageStudentsPageTitle: { en: "Manage Students", ar: "إدارة الطلاب"},
   manageStudentsPageDescription: { en: "Manage student profiles, grades, and motivational messages.", ar: "إدارة ملفات الطلاب ودرجاتهم ورسائلهم التحفيزية."},
   avatar: { en: "Avatar", ar: "الصورة الرمزية"},
-  addAdminDescription: { en: "Add new administrators or remove existing ones.", ar: "إضافة مسؤولين جدد أو إزالة المسؤولين الحاليين."}
+  addAdminDescription: { en: "Add new administrators or remove existing ones.", ar: "إضافة مسؤولين جدد أو إزالة المسؤولين الحاليين."},
+  studentsPerClassChartTitle: { en: "Students per Class", ar: "الطلاب لكل فصل"},
+  numberOfStudents: { en: "Number of Students", ar: "عدد الطلاب"},
+  noDataForChart: { en: "No data available to display chart.", ar: "لا توجد بيانات متاحة لعرض الرسم البياني."}
 };
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

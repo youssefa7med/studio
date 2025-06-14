@@ -6,8 +6,11 @@ import { useStudentData } from '@/contexts/student-data-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Users, CalendarDays, UserCog, BarChart3, School, CalendarClock, TrendingUp, ClipboardList, Trophy } from 'lucide-react';
+import { Users, School, CalendarClock, UserCog, TrendingUp, ClipboardList, Trophy } from 'lucide-react';
 import Image from 'next/image';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend } from "@/components/ui/chart";
+import React from 'react';
 
 export default function AdminDashboardPage() {
   const { t, language } = useLanguage();
@@ -15,15 +18,15 @@ export default function AdminDashboardPage() {
 
   const dashboardStats = {
     totalStudents: students.length,
-    activeClasses: classes.length, // Representing total defined classes for now
-    upcomingSessions: 3, // This remains a static value until session logic is implemented
+    activeClasses: classes.length, 
+    upcomingSessions: 3, 
   };
 
   const quickLinks = [
     { href: "/admin/students", labelKey: "students", icon: Users, descriptionKey: "manageStudentProfiles" },
     { href: "/admin/classes", labelKey: "classes", icon: School, descriptionKey: "manageClassesDesc" },
     { href: "/admin/sessions", labelKey: "sessions", icon: ClipboardList, descriptionKey: "trackSessionsDesc" },
-    { href: "/admin/schedule", labelKey: "schedule", icon: CalendarDays, descriptionKey: "manageSessionSchedules" },
+    { href: "/admin/schedule", labelKey: "schedule", icon: CalendarClock, descriptionKey: "manageSessionSchedules" }, // Changed icon to CalendarClock for consistency
     { href: "/admin/scoreboard", labelKey: "scoreboard", icon: Trophy, descriptionKey: "viewOverallScoresDesc" },
     { href: "/admin/manage-admins", labelKey: "manageAdmins", icon: UserCog, descriptionKey: "manageAdminAccounts" },
   ];
@@ -33,6 +36,20 @@ export default function AdminDashboardPage() {
     { titleKey: "activeClasses", value: dashboardStats.activeClasses, icon: School, color: "text-green-500", bgColor: "bg-green-500/10" },
     { titleKey: "upcomingSessions", value: dashboardStats.upcomingSessions, icon: CalendarClock, color: "text-yellow-500", bgColor: "bg-yellow-500/10" },
   ];
+
+  const classStudentCounts = React.useMemo(() => {
+    return classes.map(cls => ({
+      name: cls.name,
+      studentCount: students.filter(student => student.className === cls.name).length,
+    }));
+  }, [classes, students]);
+
+  const chartConfig = {
+    studentCount: {
+      label: t('numberOfStudents'),
+      color: "hsl(var(--primary))",
+    },
+  };
 
   return (
     <div className="space-y-8">
@@ -106,17 +123,47 @@ export default function AdminDashboardPage() {
             {t('performanceMetrics')}
           </CardTitle>
           <CardDescription>
-            {t('performanceOverview')}
+            {t('studentsPerClassChartTitle')}
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex items-center justify-center h-60 bg-muted/30 rounded-b-lg">
-          {/* Placeholder for charts, e.g., using <ChartContainer /> from ShadCN */}
-          <div className="text-center">
-            <BarChart3 className="h-16 w-16 text-muted-foreground mx-auto mb-2"/>
-            <p className="text-muted-foreground italic">
-              {t('chartsPlaceholder')}
-            </p>
-          </div>
+        <CardContent className="h-[400px] bg-muted/30 rounded-b-lg p-4">
+          {classStudentCounts.length > 0 ? (
+            <ChartContainer config={chartConfig} className="w-full h-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={classStudentCounts} margin={{ top: 20, right: 20, left: -20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis 
+                    dataKey="name" 
+                    tickLine={false} 
+                    axisLine={false} 
+                    tickMargin={8} 
+                    angle={language === 'ar' ? 0 : -45}
+                    textAnchor={language === 'ar' ? 'middle' : 'end'}
+                    height={language === 'ar' ? 30 : 70}
+                  />
+                  <YAxis 
+                    allowDecimals={false} 
+                    tickLine={false} 
+                    axisLine={false} 
+                    tickMargin={8}
+                    label={{ value: t('numberOfStudents'), angle: -90, position: 'insideLeft', offset:10, style: { textAnchor: 'middle' } }}
+                  />
+                  <RechartsTooltip 
+                    cursor={{fill: 'hsl(var(--muted))'}}
+                    content={<ChartTooltipContent indicator="dot" />}
+                  />
+                  <ChartLegend content={<ChartLegend />} />
+                  <Bar dataKey="studentCount" fill="var(--color-studentCount)" radius={4} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          ) : (
+             <div className="flex items-center justify-center h-full text-center">
+                <p className="text-muted-foreground italic">
+                  {t('noDataForChart')}
+                </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
