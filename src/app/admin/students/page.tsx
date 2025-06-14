@@ -11,20 +11,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Edit3, Trash2, UserCircle2 } from 'lucide-react'; // Smile, Award removed
+import { PlusCircle, Edit3, Trash2, UserCircle2 } from 'lucide-react'; 
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  // DialogTrigger, // Not used for grade modal directly
+  DialogTrigger, // Re-enabled import
   DialogFooter,
-  // DialogClose, // Not used for grade modal directly
 } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
-// import { ScrollArea } from '@/components/ui/scroll-area'; // Not used for encouragement modal anymore
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils"; 
@@ -40,7 +38,6 @@ export default function StudentsPage() {
   
   const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
   const [isGradeModalOpen, setIsGradeModalOpen] = useState(false);
-  // const [isEncouragementModalOpen, setIsEncouragementModalOpen] = useState(false); // Removed
   const [currentStudent, setCurrentStudent] = useState<Student | null>(null);
   
   const [newStudentName, setNewStudentName] = useState('');
@@ -55,8 +52,7 @@ export default function StudentsPage() {
     score: 70, 
   });
   const [progressDescription, setProgressDescription] = useState('');
-  const [encouragementMessage, setEncouragementMessage] = useState(''); // For manual input
-  // const [isLoadingEncouragement, setIsLoadingEncouragement] = useState(false); // Removed
+  const [encouragementMessage, setEncouragementMessage] = useState(''); 
 
   const availableClasses = getClasses();
 
@@ -83,7 +79,7 @@ export default function StudentsPage() {
     setCurrentStudent(student);
     setGrades(student.grades || { discipline: 3, punctuality: 3, engagement: 3, score: 70 });
     setProgressDescription(student.progressDescription || '');
-    setEncouragementMessage(student.encouragementMessage || ''); // Load existing manual message
+    setEncouragementMessage(student.encouragementMessage || ''); 
     setIsGradeModalOpen(true);
   };
 
@@ -93,8 +89,6 @@ export default function StudentsPage() {
     setIsGradeModalOpen(false);
     toast({ title: t('saveGrades'), description: `${language === 'ar' ? 'تم حفظ درجات ' : 'Grades for '}${currentStudent.name}${language === 'ar' ? ' بنجاح.' : ' saved successfully.'}` });
   };
-
-  // openEncouragementModal and related logic removed
   
   const handleDeleteStudent = (studentId: string) => {
     deleteStudentFromContext(studentId);
@@ -211,7 +205,6 @@ export default function StudentsPage() {
                     <Button variant="outline" size="icon" onClick={() => openGradeModal(student)} title={t('edit')}>
                       <Edit3 className="h-4 w-4" />
                     </Button>
-                    {/* Encouragement button removed */}
                      <Button variant="destructive" size="icon" onClick={() => handleDeleteStudent(student.id)} title={t('delete')}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -287,7 +280,6 @@ export default function StudentsPage() {
         </DialogContent>
       </Dialog>
       
-      {/* Encouragement Dialog Removed */}
     </div>
   );
 }
