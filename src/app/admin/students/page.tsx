@@ -1,6 +1,8 @@
+
 "use client";
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { useLanguage } from '@/contexts/language-context';
 import type { Student, StudentGrade } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -8,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Edit3, Trash2, Smile, Award } from 'lucide-react';
+import { PlusCircle, Edit3, Trash2, Smile, Award, UserCircle2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -22,17 +24,20 @@ import {
 import { generateEncouragementMessage, type GenerateEncouragementMessageInput } from '@/ai/flows/generate-encouragement-message';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
-
-// Custom Icons (placeholders)
-const DisciplineIcon = () => <ShieldCheck className="h-5 w-5 text-blue-500" />;
-const PunctualityIcon = () => <Clock3 className="h-5 w-5 text-green-500" />;
-const EngagementIcon = () => <Users2 className="h-5 w-5 text-yellow-500" />;
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
-// Mock initial students
+// Placeholder icons if not found in lucide-react or if custom ones are preferred
+const ShieldCheck = ({className}: {className?: string}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>;
+const Clock3 = ({className}: {className?: string}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>;
+const Users2 = ({className}: {className?: string}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>;
+
+
 const initialStudents: Student[] = [
-  { id: '1', name: 'Ahmed Ali', className: 'Junior Acrobats', grades: { discipline: 4, punctuality: 5, engagement: 4, overallScore: 4.3 }, progressDescription: 'Shows good effort in discipline and punctuality. Could be more vocal during activities.' },
-  { id: '2', name: 'Fatima Omar', className: 'Advanced Tumblers', grades: { discipline: 5, punctuality: 5, engagement: 5, overallScore: 5.0 }, progressDescription: 'Excellent all around. A model student.' },
+  { id: '1', name: 'Ahmed Ali', className: 'Junior Acrobats', gender: 'male', age: 8, grades: { discipline: 4, punctuality: 5, engagement: 4, score: 85, overallScore: 4.3 }, progressDescription: 'Shows good effort in discipline and punctuality. Could be more vocal during activities.', avatarUrl: 'https://placehold.co/100x100.png', avatarHint: 'boy student' },
+  { id: '2', name: 'Fatima Omar', className: 'Advanced Tumblers', gender: 'female', age: 10, grades: { discipline: 5, punctuality: 5, engagement: 5, score: 95, overallScore: 5.0 }, progressDescription: 'Excellent all around. A model student.', avatarUrl: 'https://placehold.co/100x100.png', avatarHint: 'girl student' },
 ];
 
 export default function StudentsPage() {
@@ -43,48 +48,71 @@ export default function StudentsPage() {
   const [isGradeModalOpen, setIsGradeModalOpen] = useState(false);
   const [isEncouragementModalOpen, setIsEncouragementModalOpen] = useState(false);
   const [currentStudent, setCurrentStudent] = useState<Student | null>(null);
+  
   const [newStudentName, setNewStudentName] = useState('');
   const [newStudentClass, setNewStudentClass] = useState('');
-  
+  const [newStudentGender, setNewStudentGender] = useState<'male' | 'female' | 'other'>('male');
+  const [newStudentAge, setNewStudentAge] = useState<number | ''>('');
+
+
   const [grades, setGrades] = useState<Partial<StudentGrade>>({
     discipline: 3,
     punctuality: 3,
     engagement: 3,
+    score: 70, 
   });
   const [progressDescription, setProgressDescription] = useState('');
   const [encouragement, setEncouragement] = useState('');
   const [isLoadingEncouragement, setIsLoadingEncouragement] = useState(false);
 
   const handleAddStudent = () => {
-    if (!newStudentName || !newStudentClass) {
-      toast({ title: "Error", description: "Name and class are required.", variant: "destructive"});
+    if (!newStudentName || !newStudentClass || !newStudentGender || newStudentAge === '') {
+      toast({ title: "Error", description: "All fields are required.", variant: "destructive"});
       return;
     }
     const newStudent: Student = {
       id: String(students.length + 1),
       name: newStudentName,
       className: newStudentClass,
+      gender: newStudentGender,
+      age: Number(newStudentAge),
+      avatarUrl: `https://placehold.co/100x100.png`,
+      avatarHint: newStudentGender === 'male' ? 'boy student' : newStudentGender === 'female' ? 'girl student' : 'student',
+      grades: { discipline: 3, punctuality: 3, engagement: 3, score: 70, overallScore: 3.0 } // Default grades
     };
     setStudents([...students, newStudent]);
     setNewStudentName('');
     setNewStudentClass('');
+    setNewStudentGender('male');
+    setNewStudentAge('');
     setIsStudentModalOpen(false);
     toast({ title: t('addStudent'), description: `${newStudentName} ${language === 'ar' ? 'أضيف بنجاح' : 'added successfully.'}` });
   };
 
   const openGradeModal = (student: Student) => {
     setCurrentStudent(student);
-    setGrades(student.grades || { discipline: 3, punctuality: 3, engagement: 3 });
+    setGrades(student.grades || { discipline: 3, punctuality: 3, engagement: 3, score: 70, overallScore: 3.0 });
     setProgressDescription(student.progressDescription || '');
     setIsGradeModalOpen(true);
   };
 
   const handleSaveGrades = () => {
     if (!currentStudent) return;
-    const overallScore = ((grades.discipline || 0) + (grades.punctuality || 0) + (grades.engagement || 0)) / 3;
+    const totalDetailedScore = (grades.discipline || 0) + (grades.punctuality || 0) + (grades.engagement || 0);
+    const averageDetailedScore = totalDetailedScore / 3;
+    // For overallScore, we can decide strategy: average of detailed, or average of detailed + direct score, or keep separate.
+    // Let's make overallScore an average of discipline, punctuality, engagement, and the direct score for now.
+    const overallScoreValue = (averageDetailedScore + (grades.score || 0)) / 2; // Example calculation
+
     const updatedStudent: Student = { 
         ...currentStudent, 
-        grades: { ...grades, overallScore: parseFloat(overallScore.toFixed(1)) } as StudentGrade,
+        grades: { 
+            discipline: grades.discipline || 0,
+            punctuality: grades.punctuality || 0,
+            engagement: grades.engagement || 0,
+            score: grades.score || 0,
+            overallScore: parseFloat(overallScoreValue.toFixed(1)) 
+        },
         progressDescription: progressDescription
     };
     setStudents(students.map(s => s.id === currentStudent.id ? updatedStudent : s));
@@ -101,13 +129,13 @@ export default function StudentsPage() {
     }
     setIsEncouragementModalOpen(true);
 
-    if (!student.encouragementMessage) { // Generate only if not already present
+    if (!student.encouragementMessage) { 
         setIsLoadingEncouragement(true);
         try {
             const input: GenerateEncouragementMessageInput = {
                 studentName: student.name,
                 className: student.className,
-                progressDescription: student.progressDescription || `Overall score: ${student.grades?.overallScore || 'N/A'}. Discipline: ${student.grades?.discipline}, Punctuality: ${student.grades?.punctuality}, Engagement: ${student.grades?.engagement}.`,
+                progressDescription: student.progressDescription || `Overall score: ${student.grades?.overallScore || 'N/A'}. Score: ${student.grades?.score || 'N/A'}. Discipline: ${student.grades?.discipline}, Punctuality: ${student.grades?.punctuality}, Engagement: ${student.grades?.engagement}.`,
             };
             const result = await generateEncouragementMessage(input);
             setEncouragement(result.encouragementMessage);
@@ -132,8 +160,8 @@ export default function StudentsPage() {
       <Card className="shadow-xl">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="font-headline text-3xl text-primary">{t('students')}</CardTitle>
-            <CardDescription>{language === 'en' ? 'Manage student profiles, grades, and motivational messages.' : 'إدارة ملفات الطلاب ودرجاتهم ورسائلهم التحفيزية.'}</CardDescription>
+            <CardTitle className="font-headline text-3xl text-primary">{t('manageStudentsPageTitle')}</CardTitle>
+            <CardDescription>{t('manageStudentsPageDescription')}</CardDescription>
           </div>
           <Dialog open={isStudentModalOpen} onOpenChange={setIsStudentModalOpen}>
             <DialogTrigger asChild>
@@ -144,6 +172,7 @@ export default function StudentsPage() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle className="font-headline">{t('addStudent')}</DialogTitle>
+                <DialogDescription>{t('studentDetails')}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div>
@@ -152,7 +181,32 @@ export default function StudentsPage() {
                 </div>
                 <div>
                   <Label htmlFor="newStudentClass">{t('className')}</Label>
-                  <Input id="newStudentClass" value={newStudentClass} onChange={(e) => setNewStudentClass(e.target.value)} />
+                  <Input id="newStudentClass" value={newStudentClass} onChange={(e) => setNewStudentClass(e.target.value)} placeholder="e.g. Junior Acrobats"/>
+                </div>
+                 <div>
+                  <Label htmlFor="newStudentAge">{t('age')}</Label>
+                  <Input id="newStudentAge" type="number" value={newStudentAge} onChange={(e) => setNewStudentAge(e.target.value === '' ? '' : parseInt(e.target.value))} />
+                </div>
+                <div>
+                  <Label>{t('gender')}</Label>
+                  <RadioGroup
+                    defaultValue="male"
+                    onValueChange={(value: 'male' | 'female' | 'other') => setNewStudentGender(value)}
+                    className="flex space-x-4 rtl:space-x-reverse"
+                  >
+                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                      <RadioGroupItem value="male" id="male" />
+                      <Label htmlFor="male">{t('male')}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                      <RadioGroupItem value="female" id="female" />
+                      <Label htmlFor="female">{t('female')}</Label>
+                    </div>
+                     <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                      <RadioGroupItem value="other" id="other" />
+                      <Label htmlFor="other">{t('other')}</Label>
+                    </div>
+                  </RadioGroup>
                 </div>
               </div>
               <DialogFooter>
@@ -166,26 +220,41 @@ export default function StudentsPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>{t('avatar')}</TableHead>
                 <TableHead>{t('studentName')}</TableHead>
                 <TableHead>{t('className')}</TableHead>
-                <TableHead className="text-center">{t('overallScore')}</TableHead>
-                <TableHead className="text-center">{language === 'en' ? 'Actions' : 'الإجراءات'}</TableHead>
+                <TableHead>{t('age')}</TableHead>
+                <TableHead>{t('gender')}</TableHead>
+                <TableHead className="text-center">{t('score')}</TableHead>
+                <TableHead className="text-center">{t('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {students.map((student) => (
                 <TableRow key={student.id}>
+                  <TableCell>
+                    <Image 
+                        src={student.avatarUrl || `https://placehold.co/40x40.png`} 
+                        alt={student.name} 
+                        width={40} 
+                        height={40} 
+                        data-ai-hint={student.avatarHint || (student.gender === 'male' ? "boy student" : "girl student")}
+                        className="rounded-full"
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">{student.name}</TableCell>
                   <TableCell>{student.className}</TableCell>
-                  <TableCell className="text-center">{student.grades?.overallScore?.toFixed(1) || 'N/A'}</TableCell>
+                  <TableCell>{student.age}</TableCell>
+                  <TableCell>{t(student.gender)}</TableCell>
+                  <TableCell className="text-center">{student.grades?.score?.toFixed(1) || 'N/A'}</TableCell>
                   <TableCell className="text-center space-x-2 rtl:space-x-reverse">
-                    <Button variant="outline" size="icon" onClick={() => openGradeModal(student)} title={language === 'en' ? 'Edit Grades' : 'تعديل الدرجات'}>
+                    <Button variant="outline" size="icon" onClick={() => openGradeModal(student)} title={t('edit')}>
                       <Edit3 className="h-4 w-4" />
                     </Button>
                     <Button variant="outline" size="icon" onClick={() => openEncouragementModal(student)} title={t('generateEncouragement')}>
                       <Smile className="h-4 w-4" />
                     </Button>
-                     <Button variant="destructive" size="icon" onClick={() => handleDeleteStudent(student.id)} title={language === 'en' ? 'Delete Student' : 'حذف الطالب'}>
+                     <Button variant="destructive" size="icon" onClick={() => handleDeleteStudent(student.id)} title={t('delete')}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>
@@ -201,28 +270,29 @@ export default function StudentsPage() {
 
       {/* Grade Modal */}
       <Dialog open={isGradeModalOpen} onOpenChange={setIsGradeModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-headline">{language === 'en' ? 'Grades for' : 'درجات'} {currentStudent?.name}</DialogTitle>
-            <DialogDescription>{language === 'en' ? 'Set scores for discipline, punctuality, and engagement.' : 'قم بتعيين درجات للانضباط والالتزام بالمواعيد والتفاعل.'}</DialogDescription>
+            <DialogTitle className="font-headline">{t('editGradesFor')} {currentStudent?.name}</DialogTitle>
+            <DialogDescription>{language === 'en' ? 'Set scores for discipline, punctuality, engagement and overall performance.' : 'قم بتعيين درجات للانضباط والالتزام بالمواعيد والتفاعل والأداء العام.'}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             {[
-              { labelKey: 'discipline', icon: <DisciplineIcon />, value: grades.discipline },
-              { labelKey: 'punctuality', icon: <PunctualityIcon />, value: grades.punctuality },
-              { labelKey: 'engagement', icon: <EngagementIcon />, value: grades.engagement },
+              { labelKey: 'discipline', icon: <DisciplineIcon />, value: grades.discipline, field: 'discipline' as keyof StudentGrade },
+              { labelKey: 'punctuality', icon: <PunctualityIcon />, value: grades.punctuality, field: 'punctuality' as keyof StudentGrade },
+              { labelKey: 'engagement', icon: <EngagementIcon />, value: grades.engagement, field: 'engagement' as keyof StudentGrade },
+              { labelKey: 'score', icon: <UserCircle2 />, value: grades.score, field: 'score' as keyof StudentGrade},
             ].map(item => (
               <div key={item.labelKey} className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor={item.labelKey} className="text-right col-span-1 flex items-center justify-end">
+                <Label htmlFor={item.labelKey} className="text-right col-span-1 flex items-center justify-end rtl:text-left rtl:justify-start">
                   {item.icon}
                   <span className="ml-2 rtl:mr-2">{t(item.labelKey)}</span>
                 </Label>
                 <Input
                   id={item.labelKey}
                   type="number"
-                  min="1" max="5" step="0.5"
+                  min="0" max={item.labelKey === 'score' ? "100" : "5"} step={item.labelKey === 'score' ? "1" : "0.5"}
                   value={item.value}
-                  onChange={(e) => setGrades({ ...grades, [item.labelKey]: parseFloat(e.target.value) })}
+                  onChange={(e) => setGrades({ ...grades, [item.field]: parseFloat(e.target.value) })}
                   className="col-span-3"
                 />
               </div>
@@ -273,9 +343,3 @@ export default function StudentsPage() {
     </div>
   );
 }
-
-// Placeholder icons if not found in lucide-react or if custom ones are preferred
-const ShieldCheck = ({className}: {className?: string}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>;
-const Clock3 = ({className}: {className?: string}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>;
-const Users2 = ({className}: {className?: string}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>;
-

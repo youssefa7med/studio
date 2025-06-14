@@ -36,6 +36,7 @@ const translations: Record<string, Record<Language, string>> = {
   punctuality: { en: "Punctuality", ar: "الالتزام بالمواعيد" },
   engagement: { en: "Engagement", ar: "التفاعل" },
   overallScore: { en: "Overall Score", ar: "التقييم الكلي" },
+  score: { en: "Score", ar: "الدرجة" },
   saveGrades: { en: "Save Grades", ar: "حفظ الدرجات" },
   generateEncouragement: { en: "Generate Encouragement", ar: "إنشاء رسالة تشجيعية" },
   encouragementMessage: { en: "Encouragement Message", ar: "رسالة تشجيعية" },
@@ -47,6 +48,7 @@ const translations: Record<string, Record<Language, string>> = {
   viewScoreboard: { en: "View Scoreboard", ar: "عرض لوحة النتائج" },
   classScoreboard: { en: "Class Scoreboard", ar: "لوحة نتائج الفصل" },
   noStudentsInClass: { en: "No students in this class yet.", ar: "لا يوجد طلاب في هذا الفصل حتى الآن." },
+  noClassesDefined: { en: "No classes defined yet. Add a class to get started.", ar: "لم يتم تحديد أي فصول دراسية حتى الآن. أضف فصلاً للبدء." },
   errorLoginFailed: { en: "Login Failed", ar: "فشل تسجيل الدخول" },
   errorInvalidCredentials: { en: "Invalid username or password.", ar: "اسم المستخدم أو كلمة المرور غير صالحة." },
   progressDescription: { en: "Progress Description", ar: "وصف التقدم" },
@@ -78,6 +80,28 @@ const translations: Record<string, Record<Language, string>> = {
   performanceMetrics: { en: "Performance Metrics", ar: "مقاييس الأداء" },
   performanceOverview: { en: "Overview of student engagement and performance trends.", ar: "نظرة عامة على مشاركة الطلاب واتجاهات الأداء." },
   chartsPlaceholder: { en: "Detailed charts and statistics will be displayed here.", ar: "سيتم عرض الرسوم البيانية والإحصائيات التفصيلية هنا." },
+  gender: { en: "Gender", ar: "الجنس" },
+  male: { en: "Male", ar: "ذكر" },
+  female: { en: "Female", ar: "أنثى" },
+  other: { en: "Other", ar: "آخر" },
+  age: { en: "Age", ar: "العمر" },
+  selectClass: { en: "Select Class", ar: "اختر الفصل" },
+  studentDetails: { en: "Student Details", ar: "تفاصيل الطالب" },
+  editGradesFor: { en: "Edit Grades for", ar: "تعديل درجات لـ" },
+  photo: { en: "Photo", ar: "الصورة" },
+  classDate: { en: "Class Date", ar: "تاريخ الفصل" },
+  addClassDetails: { en: "Add Class Details", ar: "إضافة تفاصيل الفصل" },
+  photoUrl: { en: "Photo URL", ar: "رابط الصورة" },
+  actions: { en: "Actions", ar: "الإجراءات" },
+  delete: { en: "Delete", ar: "حذف" },
+  edit: { en: "Edit", ar: "تعديل" },
+  addClass: { en: "Add Class", ar: "إضافة فصل" },
+  manageClassesPageTitle: { en: "Manage Classes", ar: "إدارة الفصول"},
+  manageClassesPageDescription: { en: "Add, view, edit, and delete classes.", ar: "إضافة وعرض وتعديل وحذف الفصول الدراسية."},
+  manageStudentsPageTitle: { en: "Manage Students", ar: "إدارة الطلاب"},
+  manageStudentsPageDescription: { en: "Manage student profiles, grades, and motivational messages.", ar: "إدارة ملفات الطلاب ودرجاتهم ورسائلهم التحفيزية."},
+  avatar: { en: "Avatar", ar: "الصورة الرمزية"},
+  addAdminDescription: { en: "Add new administrators or remove existing ones.", ar: "إضافة مسؤولين جدد أو إزالة المسؤولين الحاليين."}
 };
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -122,4 +146,3 @@ export const useLanguage = (): LanguageContextType => {
   }
   return context;
 };
-
