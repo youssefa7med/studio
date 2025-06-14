@@ -11,20 +11,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Edit3, Trash2, Smile, Award, UserCircle2 } from 'lucide-react';
+import { PlusCircle, Edit3, Trash2, UserCircle2 } from 'lucide-react'; // Smile, Award removed
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  // DialogTrigger, // Not used for grade modal directly
   DialogFooter,
-  DialogClose,
+  // DialogClose, // Not used for grade modal directly
 } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
+// import { ScrollArea } from '@/components/ui/scroll-area'; // Not used for encouragement modal anymore
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils"; 
@@ -35,12 +35,12 @@ const EngagementIcon = ({className}: {className?: string}) => <svg xmlns="http:/
 
 export default function StudentsPage() {
   const { t, language } = useLanguage();
-  const { students, addStudent: addStudentToContext, updateStudentGrades, deleteStudent: deleteStudentFromContext, fetchAndSetEncouragement, getClasses } = useStudentData();
+  const { students, addStudent: addStudentToContext, updateStudentGrades, deleteStudent: deleteStudentFromContext, getClasses } = useStudentData();
   const { toast } = useToast();
   
   const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
   const [isGradeModalOpen, setIsGradeModalOpen] = useState(false);
-  const [isEncouragementModalOpen, setIsEncouragementModalOpen] = useState(false);
+  // const [isEncouragementModalOpen, setIsEncouragementModalOpen] = useState(false); // Removed
   const [currentStudent, setCurrentStudent] = useState<Student | null>(null);
   
   const [newStudentName, setNewStudentName] = useState('');
@@ -55,8 +55,8 @@ export default function StudentsPage() {
     score: 70, 
   });
   const [progressDescription, setProgressDescription] = useState('');
-  const [encouragement, setEncouragement] = useState('');
-  const [isLoadingEncouragement, setIsLoadingEncouragement] = useState(false);
+  const [encouragementMessage, setEncouragementMessage] = useState(''); // For manual input
+  // const [isLoadingEncouragement, setIsLoadingEncouragement] = useState(false); // Removed
 
   const availableClasses = getClasses();
 
@@ -83,38 +83,18 @@ export default function StudentsPage() {
     setCurrentStudent(student);
     setGrades(student.grades || { discipline: 3, punctuality: 3, engagement: 3, score: 70 });
     setProgressDescription(student.progressDescription || '');
+    setEncouragementMessage(student.encouragementMessage || ''); // Load existing manual message
     setIsGradeModalOpen(true);
   };
 
   const handleSaveGrades = () => {
     if (!currentStudent) return;
-    updateStudentGrades(currentStudent.id, grades, progressDescription);
+    updateStudentGrades(currentStudent.id, grades, progressDescription, encouragementMessage);
     setIsGradeModalOpen(false);
     toast({ title: t('saveGrades'), description: `${language === 'ar' ? 'تم حفظ درجات ' : 'Grades for '}${currentStudent.name}${language === 'ar' ? ' بنجاح.' : ' saved successfully.'}` });
   };
 
-  const openEncouragementModal = async (student: Student) => {
-    setCurrentStudent(student);
-    setEncouragement(student.encouragementMessage || '');
-     if (!student.progressDescription && !student.grades) {
-      toast({ title: "Info", description: "Please add grades or progress description first.", variant: "default"});
-      return;
-    }
-    setIsEncouragementModalOpen(true);
-
-    if (!student.encouragementMessage) { 
-        setIsLoadingEncouragement(true);
-        try {
-            const message = await fetchAndSetEncouragement(student);
-            setEncouragement(message);
-        } catch (error) {
-            console.error("Failed to generate encouragement:", error);
-            toast({ title: "Error", description: "Failed to generate encouragement message.", variant: "destructive" });
-        } finally {
-            setIsLoadingEncouragement(false);
-        }
-    }
-  };
+  // openEncouragementModal and related logic removed
   
   const handleDeleteStudent = (studentId: string) => {
     deleteStudentFromContext(studentId);
@@ -231,9 +211,7 @@ export default function StudentsPage() {
                     <Button variant="outline" size="icon" onClick={() => openGradeModal(student)} title={t('edit')}>
                       <Edit3 className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="icon" onClick={() => openEncouragementModal(student)} title={t('generateEncouragement')}>
-                      <Smile className="h-4 w-4" />
-                    </Button>
+                    {/* Encouragement button removed */}
                      <Button variant="destructive" size="icon" onClick={() => handleDeleteStudent(student.id)} title={t('delete')}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -252,7 +230,7 @@ export default function StudentsPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="font-headline">{t('editGradesFor')} {currentStudent?.name}</DialogTitle>
-            <DialogDescription>{language === 'en' ? 'Set scores for discipline, punctuality, engagement and overall performance.' : 'قم بتعيين درجات للانضباط والالتزام بالمواعيد والتفاعل والأداء العام.'}</DialogDescription>
+            <DialogDescription>{language === 'en' ? 'Set scores for discipline, punctuality, engagement and overall performance. You can also add progress notes and an encouragement message.' : 'قم بتعيين درجات للانضباط والالتزام بالمواعيد والتفاعل والأداء العام. يمكنك أيضًا إضافة ملاحظات التقدم ورسالة تشجيعية.'}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             {[
@@ -292,6 +270,15 @@ export default function StudentsPage() {
                 placeholder={language === 'en' ? 'Describe student progress, strengths, areas for improvement...' : 'صف تقدم الطالب ونقاط القوة ومجالات التحسين...'}
                 />
             </div>
+            <div>
+              <Label htmlFor="encouragementMessageManual">{t('encouragementMessage')}</Label>
+              <Textarea 
+                id="encouragementMessageManual" 
+                value={encouragementMessage} 
+                onChange={(e) => setEncouragementMessage(e.target.value)}
+                placeholder={language === 'en' ? 'Write an encouraging message for the student...' : 'اكتب رسالة تشجيعية للطالب...'}
+                />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsGradeModalOpen(false)}>{t('close')}</Button>
@@ -300,31 +287,7 @@ export default function StudentsPage() {
         </DialogContent>
       </Dialog>
       
-      <Dialog open={isEncouragementModalOpen} onOpenChange={setIsEncouragementModalOpen}>
-        <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-                <DialogTitle className="font-headline flex items-center"><Award className="mr-2 h-6 w-6 text-primary"/>{t('encouragementMessage')}</DialogTitle>
-                <DialogDescription>{language === 'en' ? 'For' : 'للطالب'} {currentStudent?.name}</DialogDescription>
-            </DialogHeader>
-            <div className="py-4 min-h-[150px]">
-                {isLoadingEncouragement ? (
-                    <div className="flex items-center justify-center h-full">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                        <p className="ml-2 rtl:mr-2">{language === 'en' ? 'Generating...' : 'جاري الإنشاء...'}</p>
-                    </div>
-                ) : (
-                    <ScrollArea className="h-[200px] p-2 border rounded-md bg-background/50">
-                      <pre className="whitespace-pre-wrap text-sm">{encouragement}</pre>
-                    </ScrollArea>
-                )}
-            </div>
-            <DialogFooter>
-                <DialogClose asChild>
-                    <Button variant="outline">{t('close')}</Button>
-                </DialogClose>
-            </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Encouragement Dialog Removed */}
     </div>
   );
 }

@@ -21,6 +21,8 @@ const translations: Record<string, Record<Language, string>> = {
   login: { en: "Login", ar: "تسجيل الدخول" },
   username: { en: "Username", ar: "اسم المستخدم" },
   password: { en: "Password", ar: "كلمة المرور" },
+  usernamePlaceholder: { en: "e.g., admin_user", ar: "مثال: admin_user" },
+  passwordPlaceholder: { en: "e.g., YourSecurePa$$wOrd", ar: "مثال: كلمةالمرورالآمنة الخاصةبك" },
   adminDashboard: { en: "Admin Dashboard", ar: "لوحة تحكم المسؤول" },
   students: { en: "Students", ar: "الطلاب" },
   schedule: { en: "Schedule", ar: "الجدول الزمني" },
@@ -38,7 +40,7 @@ const translations: Record<string, Record<Language, string>> = {
   overallScore: { en: "Overall Score", ar: "التقييم الكلي" },
   score: { en: "Score", ar: "الدرجة" },
   saveGrades: { en: "Save Grades", ar: "حفظ الدرجات" },
-  generateEncouragement: { en: "Generate Encouragement", ar: "إنشاء رسالة تشجيعية" },
+  generateEncouragement: { en: "Generate Encouragement", ar: "إنشاء رسالة تشجيعية" }, // Retained for now if other UIs use it, but functionality is manual
   encouragementMessage: { en: "Encouragement Message", ar: "رسالة تشجيعية" },
   close: { en: "Close", ar: "إغلاق" },
   addAdmin: { en: "Add Admin", ar: "إضافة مسؤول" },

@@ -2,13 +2,13 @@
 "use client";
 
 import type { Student, StudentGrade, ClassItem } from '@/types';
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { generateEncouragementMessage, type GenerateEncouragementMessageInput } from '@/ai/flows/generate-encouragement-message';
+import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+// import { generateEncouragementMessage, type GenerateEncouragementMessageInput } from '@/ai/flows/generate-encouragement-message'; // AI flow removed
 
 // Initial Data
 const initialStudentsData: Student[] = [
-  { id: '1', name: 'Ahmed Ali', className: 'Junior Acrobats', gender: 'male', age: 8, grades: { discipline: 4, punctuality: 5, engagement: 4, score: 85, overallScore: 4.3 }, progressDescription: 'Shows good effort in discipline and punctuality. Could be more vocal during activities.', avatarUrl: 'https://placehold.co/100x100.png', avatarHint: 'boy student' },
-  { id: '2', name: 'Fatima Omar', className: 'Advanced Tumblers', gender: 'female', age: 10, grades: { discipline: 5, punctuality: 5, engagement: 5, score: 95, overallScore: 5.0 }, progressDescription: 'Excellent all around. A model student.', avatarUrl: 'https://placehold.co/100x100.png', avatarHint: 'girl student' },
+  { id: '1', name: 'Ahmed Ali', className: 'Junior Acrobats', gender: 'male', age: 8, grades: { discipline: 4, punctuality: 5, engagement: 4, score: 85, overallScore: 4.3 }, progressDescription: 'Shows good effort in discipline and punctuality. Could be more vocal during activities.', encouragementMessage: 'Keep up the great work, Ahmed!', avatarUrl: 'https://placehold.co/100x100.png', avatarHint: 'boy student' },
+  { id: '2', name: 'Fatima Omar', className: 'Advanced Tumblers', gender: 'female', age: 10, grades: { discipline: 5, punctuality: 5, engagement: 5, score: 95, overallScore: 5.0 }, progressDescription: 'Excellent all around. A model student.', encouragementMessage: 'Amazing job, Fatima! You are a star.', avatarUrl: 'https://placehold.co/100x100.png', avatarHint: 'girl student' },
 ];
 
 const initialClassesData: ClassItem[] = [
@@ -22,10 +22,10 @@ interface StudentDataContextType {
   students: Student[];
   getStudentById: (id: string) => Student | undefined;
   addStudent: (studentData: Omit<Student, 'id' | 'grades' | 'avatarUrl' | 'avatarHint' | 'encouragementMessage' | 'progressDescription'> & { avatarUrl?: string, avatarHint?: string }) => void;
-  updateStudentGrades: (studentId: string, grades: Partial<StudentGrade>, progressDescription: string) => void;
+  updateStudentGrades: (studentId: string, grades: Partial<StudentGrade>, progressDescription: string, encouragementMessage: string) => void;
   deleteStudent: (studentId: string) => void;
-  updateStudentEncouragement: (studentId: string, encouragementMessage: string) => void;
-  fetchAndSetEncouragement: (student: Student) => Promise<string>;
+  // updateStudentEncouragement: (studentId: string, encouragementMessage: string) => void; // Removed
+  // fetchAndSetEncouragement: (student: Student) => Promise<string>; // Removed
 
   classes: ClassItem[];
   addClass: (classData: Omit<ClassItem, 'id' | 'students'>) => void;
@@ -49,12 +49,14 @@ export const StudentDataProvider: React.FC<{ children: ReactNode }> = ({ childre
       ...studentData,
       avatarUrl: studentData.avatarUrl || `https://placehold.co/100x100.png`,
       avatarHint: studentData.avatarHint || (studentData.gender === 'male' ? "boy student" : studentData.gender === 'female' ? "girl student" : "student"),
-      grades: { discipline: 3, punctuality: 3, engagement: 3, score: 70, overallScore: 3.0 }
+      grades: { discipline: 3, punctuality: 3, engagement: 3, score: 70, overallScore: 3.0 },
+      progressDescription: '',
+      encouragementMessage: ''
     };
     setStudents(prev => [...prev, newStudent]);
   }, []);
 
-  const updateStudentGrades = useCallback((studentId: string, newGrades: Partial<StudentGrade>, progressDescription: string) => {
+  const updateStudentGrades = useCallback((studentId: string, newGrades: Partial<StudentGrade>, progressDescription: string, encouragementMessage: string) => {
     setStudents(prev => prev.map(s => {
       if (s.id === studentId) {
         const currentGrades = s.grades || { discipline: 0, punctuality: 0, engagement: 0, score: 0, overallScore: 0 };
@@ -71,7 +73,7 @@ export const StudentDataProvider: React.FC<{ children: ReactNode }> = ({ childre
          if (newGrades.score !== undefined) { 
             updatedFullGrades.overallScore = parseFloat(((averageDetailedScore + (newGrades.score / 20) ) / 2).toFixed(1)); 
          }
-        return { ...s, grades: updatedFullGrades, progressDescription };
+        return { ...s, grades: updatedFullGrades, progressDescription, encouragementMessage };
       }
       return s;
     }));
@@ -81,29 +83,31 @@ export const StudentDataProvider: React.FC<{ children: ReactNode }> = ({ childre
     setStudents(prev => prev.filter(s => s.id !== studentId));
   }, []);
 
-  const updateStudentEncouragement = useCallback((studentId: string, encouragementMessage: string) => {
-    setStudents(prev => prev.map(s => s.id === studentId ? { ...s, encouragementMessage } : s));
-  }, []);
+  // const updateStudentEncouragement = useCallback((studentId: string, encouragementMessage: string) => { // Removed
+  //   setStudents(prev => prev.map(s => s.id === studentId ? { ...s, encouragementMessage } : s));
+  // }, []);
 
-  const fetchAndSetEncouragement = useCallback(async (student: Student): Promise<string> => {
-    if (!student.id) {
-        console.error("Student ID is undefined, cannot fetch encouragement.");
-        return "Error: Student ID missing.";
-    }
-    const input: GenerateEncouragementMessageInput = {
-        studentName: student.name,
-        className: student.className,
-        progressDescription: student.progressDescription || `Overall score: ${student.grades?.overallScore || 'N/A'}. Score: ${student.grades?.score || 'N/A'}. Discipline: ${student.grades?.discipline || 'N/A'}, Punctuality: ${student.grades?.punctuality || 'N/A'}, Engagement: ${student.grades?.engagement || 'N/A'}.`,
-    };
-    try {
-        const result = await generateEncouragementMessage(input);
-        updateStudentEncouragement(student.id, result.encouragementMessage);
-        return result.encouragementMessage;
-    } catch (error) {
-        console.error("Failed to generate encouragement:", error);
-        return "Failed to generate message.";
-    }
-  }, [updateStudentEncouragement]);
+  // const fetchAndSetEncouragement = useCallback(async (student: Student): Promise<string> => { // Removed
+  //   if (!student.id) {
+  //       console.error("Student ID is undefined, cannot fetch encouragement.");
+  //       return "Error: Student ID missing.";
+  //   }
+  //   const input: GenerateEncouragementMessageInput = {
+  //       studentName: student.name,
+  //       className: student.className,
+  //       progressDescription: student.progressDescription || `Overall score: ${student.grades?.overallScore || 'N/A'}. Score: ${student.grades?.score || 'N/A'}. Discipline: ${student.grades?.discipline || 'N/A'}, Punctuality: ${student.grades?.punctuality || 'N/A'}, Engagement: ${student.grades?.engagement || 'N/A'}.`,
+  //   };
+  //   try {
+  //       const result = await generateEncouragementMessage(input);
+  //       // updateStudentEncouragement(student.id, result.encouragementMessage); // Direct update removed
+  //       setStudents(prev => prev.map(s => s.id === student.id ? { ...s, encouragementMessage: result.encouragementMessage } : s));
+  //       return result.encouragementMessage;
+  //   } catch (error) {
+  //       console.error("Failed to generate encouragement:", error);
+  //       return "Failed to generate message.";
+  //   }
+  // }, []);
+
 
   const getClassById = useCallback((id: string) => classes.find(c => c.id === id), [classes]);
   
@@ -123,7 +127,7 @@ export const StudentDataProvider: React.FC<{ children: ReactNode }> = ({ childre
   }, []);
 
   const deleteClass = useCallback((classId: string) => {
-    const classToDelete = getClassById(classId); // getClassById is now stable
+    const classToDelete = getClassById(classId); 
     if (!classToDelete) return;
     setClasses(prev => prev.filter(c => c.id !== classId));
     setStudents(prevStudents => prevStudents.map(s => s.className === classToDelete.name ? {...s, className: ''} : s));
@@ -132,7 +136,7 @@ export const StudentDataProvider: React.FC<{ children: ReactNode }> = ({ childre
 
   return (
     <StudentDataContext.Provider value={{
-        students, getStudentById, addStudent, updateStudentGrades, deleteStudent, updateStudentEncouragement, fetchAndSetEncouragement,
+        students, getStudentById, addStudent, updateStudentGrades, deleteStudent, // updateStudentEncouragement, fetchAndSetEncouragement, // Removed
         classes, addClass, updateClass, deleteClass, getClassById, getClasses
     }}>
       {children}
@@ -147,4 +151,3 @@ export const useStudentData = (): StudentDataContextType => {
   }
   return context;
 };
-

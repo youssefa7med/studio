@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -46,7 +47,7 @@ export function LoginForm() {
           onChange={(e) => setUsername(e.target.value)}
           required
           autoFocus
-          placeholder="YoussefAhmed"
+          placeholder={t('usernamePlaceholder')}
           className="bg-background/70"
         />
       </div>
@@ -58,7 +59,7 @@ export function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          placeholder="AdminTricksLand123$"
+          placeholder={t('passwordPlaceholder')}
           className="bg-background/70"
         />
       </div>
