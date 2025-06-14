@@ -1,9 +1,10 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useLanguage } from '@/contexts/language-context';
+import { useStudentData } from '@/contexts/student-data-context';
 import type { Student, StudentGrade } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,29 +22,22 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { generateEncouragementMessage, type GenerateEncouragementMessageInput } from '@/ai/flows/generate-encouragement-message';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { cn } from "@/lib/utils"; // Correctly import cn
+import { cn } from "@/lib/utils"; 
 
-// Custom SVG icons for assessment criteria
 const DisciplineIcon = ({className}: {className?: string}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={cn("h-5 w-5 text-primary", className)}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>;
 const PunctualityIcon = ({className}: {className?: string}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={cn("h-5 w-5 text-primary", className)}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>;
 const EngagementIcon = ({className}: {className?: string}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={cn("h-5 w-5 text-primary", className)}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>;
 
-
-const initialStudents: Student[] = [
-  { id: '1', name: 'Ahmed Ali', className: 'Junior Acrobats', gender: 'male', age: 8, grades: { discipline: 4, punctuality: 5, engagement: 4, score: 85, overallScore: 4.3 }, progressDescription: 'Shows good effort in discipline and punctuality. Could be more vocal during activities.', avatarUrl: 'https://placehold.co/100x100.png', avatarHint: 'boy student' },
-  { id: '2', name: 'Fatima Omar', className: 'Advanced Tumblers', gender: 'female', age: 10, grades: { discipline: 5, punctuality: 5, engagement: 5, score: 95, overallScore: 5.0 }, progressDescription: 'Excellent all around. A model student.', avatarUrl: 'https://placehold.co/100x100.png', avatarHint: 'girl student' },
-];
-
 export default function StudentsPage() {
   const { t, language } = useLanguage();
+  const { students, addStudent: addStudentToContext, updateStudentGrades, deleteStudent: deleteStudentFromContext, fetchAndSetEncouragement, getClasses } = useStudentData();
   const { toast } = useToast();
-  const [students, setStudents] = useState<Student[]>(initialStudents);
+  
   const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
   const [isGradeModalOpen, setIsGradeModalOpen] = useState(false);
   const [isEncouragementModalOpen, setIsEncouragementModalOpen] = useState(false);
@@ -53,7 +47,6 @@ export default function StudentsPage() {
   const [newStudentClass, setNewStudentClass] = useState('');
   const [newStudentGender, setNewStudentGender] = useState<'male' | 'female' | 'other'>('male');
   const [newStudentAge, setNewStudentAge] = useState<number | ''>('');
-
 
   const [grades, setGrades] = useState<Partial<StudentGrade>>({
     discipline: 3,
@@ -65,22 +58,19 @@ export default function StudentsPage() {
   const [encouragement, setEncouragement] = useState('');
   const [isLoadingEncouragement, setIsLoadingEncouragement] = useState(false);
 
+  const availableClasses = getClasses();
+
   const handleAddStudent = () => {
     if (!newStudentName || !newStudentClass || !newStudentGender || newStudentAge === '') {
       toast({ title: "Error", description: "All fields are required.", variant: "destructive"});
       return;
     }
-    const newStudent: Student = {
-      id: String(students.length + 1),
+    addStudentToContext({
       name: newStudentName,
       className: newStudentClass,
       gender: newStudentGender,
       age: Number(newStudentAge),
-      avatarUrl: `https://placehold.co/100x100.png`,
-      avatarHint: newStudentGender === 'male' ? 'boy student' : newStudentGender === 'female' ? 'girl student' : 'student',
-      grades: { discipline: 3, punctuality: 3, engagement: 3, score: 70, overallScore: 3.0 } // Default grades
-    };
-    setStudents([...students, newStudent]);
+    });
     setNewStudentName('');
     setNewStudentClass('');
     setNewStudentGender('male');
@@ -91,31 +81,14 @@ export default function StudentsPage() {
 
   const openGradeModal = (student: Student) => {
     setCurrentStudent(student);
-    setGrades(student.grades || { discipline: 3, punctuality: 3, engagement: 3, score: 70, overallScore: 3.0 });
+    setGrades(student.grades || { discipline: 3, punctuality: 3, engagement: 3, score: 70 });
     setProgressDescription(student.progressDescription || '');
     setIsGradeModalOpen(true);
   };
 
   const handleSaveGrades = () => {
     if (!currentStudent) return;
-    const totalDetailedScore = (grades.discipline || 0) + (grades.punctuality || 0) + (grades.engagement || 0);
-    const averageDetailedScore = totalDetailedScore / 3;
-    // For overallScore, we can decide strategy: average of detailed, or average of detailed + direct score, or keep separate.
-    // Let's make overallScore an average of discipline, punctuality, engagement, and the direct score for now.
-    const overallScoreValue = (averageDetailedScore + (grades.score || 0)) / 2; // Example calculation
-
-    const updatedStudent: Student = { 
-        ...currentStudent, 
-        grades: { 
-            discipline: grades.discipline || 0,
-            punctuality: grades.punctuality || 0,
-            engagement: grades.engagement || 0,
-            score: grades.score || 0,
-            overallScore: parseFloat(overallScoreValue.toFixed(1)) 
-        },
-        progressDescription: progressDescription
-    };
-    setStudents(students.map(s => s.id === currentStudent.id ? updatedStudent : s));
+    updateStudentGrades(currentStudent.id, grades, progressDescription);
     setIsGradeModalOpen(false);
     toast({ title: t('saveGrades'), description: `${language === 'ar' ? 'تم حفظ درجات ' : 'Grades for '}${currentStudent.name}${language === 'ar' ? ' بنجاح.' : ' saved successfully.'}` });
   };
@@ -132,14 +105,8 @@ export default function StudentsPage() {
     if (!student.encouragementMessage) { 
         setIsLoadingEncouragement(true);
         try {
-            const input: GenerateEncouragementMessageInput = {
-                studentName: student.name,
-                className: student.className,
-                progressDescription: student.progressDescription || `Overall score: ${student.grades?.overallScore || 'N/A'}. Score: ${student.grades?.score || 'N/A'}. Discipline: ${student.grades?.discipline}, Punctuality: ${student.grades?.punctuality}, Engagement: ${student.grades?.engagement}.`,
-            };
-            const result = await generateEncouragementMessage(input);
-            setEncouragement(result.encouragementMessage);
-            setStudents(students.map(s => s.id === student.id ? { ...s, encouragementMessage: result.encouragementMessage } : s));
+            const message = await fetchAndSetEncouragement(student);
+            setEncouragement(message);
         } catch (error) {
             console.error("Failed to generate encouragement:", error);
             toast({ title: "Error", description: "Failed to generate encouragement message.", variant: "destructive" });
@@ -150,7 +117,7 @@ export default function StudentsPage() {
   };
   
   const handleDeleteStudent = (studentId: string) => {
-    setStudents(students.filter(s => s.id !== studentId));
+    deleteStudentFromContext(studentId);
     toast({ title: "Student Deleted", description: "Student removed successfully.", variant: "destructive" });
   };
 
@@ -184,7 +151,16 @@ export default function StudentsPage() {
                 </div>
                 <div>
                   <Label htmlFor="newStudentClass">{t('className')}</Label>
-                  <Input id="newStudentClass" value={newStudentClass} onChange={(e) => setNewStudentClass(e.target.value)} placeholder="e.g. Junior Acrobats"/>
+                  <Select onValueChange={setNewStudentClass} value={newStudentClass}>
+                    <SelectTrigger id="newStudentClass">
+                      <SelectValue placeholder={t('selectClass')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableClasses.map((c) => (
+                        <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                  <div>
                   <Label htmlFor="newStudentAge">{t('age')}</Label>
@@ -272,7 +248,6 @@ export default function StudentsPage() {
         </CardContent>
       </Card>
 
-      {/* Grade Modal */}
       <Dialog open={isGradeModalOpen} onOpenChange={setIsGradeModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -325,7 +300,6 @@ export default function StudentsPage() {
         </DialogContent>
       </Dialog>
       
-      {/* Encouragement Modal */}
       <Dialog open={isEncouragementModalOpen} onOpenChange={setIsEncouragementModalOpen}>
         <DialogContent className="sm:max-w-md">
             <DialogHeader>

@@ -1,16 +1,16 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useLanguage } from '@/contexts/language-context';
+import { useStudentData } from '@/contexts/student-data-context';
 import type { ClassItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Edit3, Trash2, CalendarIcon, ImagePlus, School } from 'lucide-react';
+import { PlusCircle, Edit3, Trash2, CalendarIcon, School } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,6 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
 import { Calendar } from '@/components/ui/calendar';
@@ -27,15 +26,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from 'date-fns';
 import { arSA, enUS } from 'date-fns/locale';
 
-const initialClasses: ClassItem[] = [
-  { id: '1', name: 'Junior Acrobats', photoUrl: 'https://placehold.co/600x400.png', photoHint: 'children gymnastics', date: new Date(2024, 6, 20), students: [] },
-  { id: '2', name: 'Advanced Tumblers', photoUrl: 'https://placehold.co/600x400.png', photoHint: 'teenagers tumbling', date: new Date(2024, 7, 15), students: [] },
-];
-
 export default function ClassesPage() {
   const { t, language } = useLanguage();
+  const { classes, addClass: addClassToContext, updateClass: updateClassInContext, deleteClass: deleteClassFromContext } = useStudentData();
   const { toast } = useToast();
-  const [classes, setClasses] = useState<ClassItem[]>(initialClasses);
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClass, setEditingClass] = useState<ClassItem | null>(null);
 
@@ -49,7 +44,7 @@ export default function ClassesPage() {
   const openAddModal = () => {
     setEditingClass(null);
     setCurrentClassName('');
-    setCurrentClassPhotoUrl('');
+    setCurrentClassPhotoUrl('https://placehold.co/600x400.png');
     setCurrentClassPhotoHint('');
     setCurrentClassDate(new Date());
     setIsModalOpen(true);
@@ -70,28 +65,25 @@ export default function ClassesPage() {
       return;
     }
 
+    const classDetails = { 
+      name: currentClassName, 
+      photoUrl: currentClassPhotoUrl, 
+      photoHint: currentClassPhotoHint || 'class activity', 
+      date: currentClassDate,
+    };
+
     if (editingClass) {
-      // Update existing class
-      setClasses(classes.map(c => c.id === editingClass.id ? { ...c, name: currentClassName, photoUrl: currentClassPhotoUrl, photoHint: currentClassPhotoHint, date: currentClassDate } : c));
+      updateClassInContext({ ...editingClass, ...classDetails });
       toast({ title: t('edit') + ' ' + t('className'), description: `${currentClassName} updated successfully.` });
     } else {
-      // Add new class
-      const newClass: ClassItem = {
-        id: String(classes.length + 1),
-        name: currentClassName,
-        photoUrl: currentClassPhotoUrl,
-        photoHint: currentClassPhotoHint || 'class activity',
-        date: currentClassDate,
-        students: [],
-      };
-      setClasses([...classes, newClass]);
+      addClassToContext(classDetails);
       toast({ title: t('addClass'), description: `${currentClassName} added successfully.` });
     }
     setIsModalOpen(false);
   };
   
   const handleDeleteClass = (classId: string) => {
-    setClasses(classes.filter(c => c.id !== classId));
+    deleteClassFromContext(classId);
     toast({ title: "Class Deleted", description: "Class removed successfully.", variant: "destructive" });
   };
 
@@ -156,8 +148,8 @@ export default function ClassesPage() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="className">{t('className')}</Label>
-              <Input id="className" value={currentClassName} onChange={(e) => setCurrentClassName(e.target.value)} />
+              <Label htmlFor="classNameInput">{t('className')}</Label>
+              <Input id="classNameInput" value={currentClassName} onChange={(e) => setCurrentClassName(e.target.value)} />
             </div>
             <div>
               <Label htmlFor="classPhotoUrl">{t('photoUrl')}</Label>
