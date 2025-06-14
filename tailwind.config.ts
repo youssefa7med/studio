@@ -17,8 +17,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        headline: ['Belleza', 'sans-serif'],
-        body: ['Alegreya', 'serif'],
+        headline: ['Roboto', 'sans-serif'],
+        body: ['Roboto', 'serif'],
         code: ['monospace'],
       },
       colors: {

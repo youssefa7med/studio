@@ -32,7 +32,7 @@ export function AdminSidebar() {
     <aside className={cn(
       "sticky top-0 h-screen flex flex-col border-e bg-sidebar text-sidebar-foreground shadow-lg",
       language === 'ar' ? 'border-s' : 'border-e',
-      "w-64" // Fixed width for sidebar
+      "w-60" // Adjusted width to 240px (15rem * 16px/rem = 240px; w-60 in Tailwind is 15rem)
     )}>
       <div className="flex h-16 items-center justify-center border-b px-6">
         <Link href="/admin/dashboard" className="flex items-center gap-2 font-semibold">
