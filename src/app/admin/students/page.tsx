@@ -18,7 +18,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger, // Re-enabled import
+  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
@@ -44,6 +44,9 @@ export default function StudentsPage() {
   const [newStudentClass, setNewStudentClass] = useState('');
   const [newStudentGender, setNewStudentGender] = useState<'male' | 'female' | 'other'>('male');
   const [newStudentAge, setNewStudentAge] = useState<number | ''>('');
+  const [newStudentAvatarUrl, setNewStudentAvatarUrl] = useState('');
+  const [newStudentAvatarHint, setNewStudentAvatarHint] = useState('');
+
 
   const [grades, setGrades] = useState<Partial<StudentGrade>>({
     discipline: 3,
@@ -66,11 +69,15 @@ export default function StudentsPage() {
       className: newStudentClass,
       gender: newStudentGender,
       age: Number(newStudentAge),
+      avatarUrl: newStudentAvatarUrl || undefined, // Pass undefined if empty to let context handle default
+      avatarHint: newStudentAvatarHint || undefined,
     });
     setNewStudentName('');
     setNewStudentClass('');
     setNewStudentGender('male');
     setNewStudentAge('');
+    setNewStudentAvatarUrl('');
+    setNewStudentAvatarHint('');
     setIsStudentModalOpen(false);
     toast({ title: t('addStudent'), description: `${newStudentName} ${language === 'ar' ? 'أضيف بنجاح' : 'added successfully.'}` });
   };
@@ -161,6 +168,24 @@ export default function StudentsPage() {
                       <Label htmlFor="other">{t('other')}</Label>
                     </div>
                   </RadioGroup>
+                </div>
+                <div>
+                  <Label htmlFor="newStudentAvatarUrl">{t('avatarUrl')}</Label>
+                  <Input 
+                    id="newStudentAvatarUrl" 
+                    value={newStudentAvatarUrl} 
+                    onChange={(e) => setNewStudentAvatarUrl(e.target.value)} 
+                    placeholder="https://placehold.co/100x100.png"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="newStudentAvatarHint">{t('avatarHint')}</Label>
+                  <Input 
+                    id="newStudentAvatarHint" 
+                    value={newStudentAvatarHint} 
+                    onChange={(e) => setNewStudentAvatarHint(e.target.value)} 
+                    placeholder={language === 'en' ? 'e.g. smiling student' : 'مثال: طالب مبتسم'}
+                  />
                 </div>
               </div>
               <DialogFooter>
