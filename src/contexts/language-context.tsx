@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Dispatch, SetStateAction } from 'react';
@@ -52,6 +53,12 @@ const translations: Record<string, Record<Language, string>> = {
   home: { en: "Home", ar: "الرئيسية"},
   admin: { en: "Admin", ar: "المسؤول"},
   dashboard: { en: "Dashboard", ar: "لوحة التحكم"},
+  classes: { en: "Classes", ar: "الفصول" },
+  sessions: { en: "Sessions", ar: "الجلسات" },
+  scoreboard: { en: "Scoreboard", ar: "لوحة النتائج" },
+  manageClasses: { en: "Manage classes and student assignments.", ar: "إدارة الفصول الدراسية وواجبات الطلاب."},
+  trackSessions: { en: "Track sessions, attendance, and performance.", ar: "تتبع الجلسات والحضور والأداء."},
+  viewOverallScores: { en: "View real-time scores and metrics.", ar: "عرض النتائج والمقاييس في الوقت الفعلي."},
 };
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
